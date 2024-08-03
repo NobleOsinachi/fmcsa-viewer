@@ -72,7 +72,8 @@ const Viewer = () => {
 
         setRecords(parsedData.data);
         setFilteredRecords(parsedData.data);
-      }).finally(() => {
+      })
+      .finally(() => {
         setLoading(false);
       });
   }, []);
@@ -258,42 +259,69 @@ const Viewer = () => {
               <TableHead>
                 <TableRow>
                   {[
-                    { key: 'created_dt', label: 'Created Date' },
-                    { key: 'data_source_modified_dt', label: 'Modified Date' },
-                    { key: 'entity_type', label: 'Entity Type' },
-                    { key: 'operating_status', label: 'Operating Status' },
-                    { key: 'legal_name', label: 'Legal Name' },
-                    { key: 'dba_name', label: 'DBA Name' },
-                    { key: 'physical_address', label: 'Physical Address' },
-                    { key: 'power_units', label: 'Power Units' },
+                    {
+                      key: 'created_dt',
+                      label: 'Created Date',
+                      sortable: true,
+                    },
+                    {
+                      key: 'data_source_modified_dt',
+                      label: 'Modified Date',
+                      sortable: true,
+                    },
+                    {
+                      key: 'entity_type',
+                      label: 'Entity Type',
+                      sortable: true,
+                    },
+                    {
+                      key: 'operating_status',
+                      label: 'Operating Status',
+                      sortable: true,
+                    },
+                    { key: 'legal_name', label: 'Legal Name', sortable: true },
+                    { key: 'dba_name', label: 'DBA Name', sortable: true },
+                    {
+                      key: 'physical_address',
+                      label: 'Physical Address',
+                      sortable: true,
+                    },
+                    { key: 'phone', label: 'Phone', sortable: false },
+                    { key: 'dot', label: 'DOT', sortable: false },
+                    { key: 'mc_mx_ff', label: 'MC/MX/FF', sortable: false },
+                    {
+                      key: 'power_units',
+                      label: 'Power Units',
+                      sortable: true,
+                    },
                     {
                       key: 'out_of_service_date',
                       label: 'Out of Service Date',
+                      sortable: true,
                     },
                   ].map(column => (
                     <TableCell
                       key={column.key}
                       sx={{ ...cellStyles, ...headerCellStyles }}
-                      sortDirection={sortConfig.key === column.key ? (sortConfig.direction as TableSortLabelProps['direction']) : undefined}
+                      sortDirection={
+                        sortConfig.key === column.key
+                          ? (sortConfig.direction as TableSortLabelProps['direction'])
+                          : undefined
+                      }
                     >
-                      <TableSortLabel
-                        active={sortConfig.key === column.key}
-                        direction={sortConfig.direction || 'asc'}
-                        onClick={() => requestSort(column.key)}
-                      >
-                        {column.label}
-                      </TableSortLabel>
+                      {column.sortable ? (
+                        <TableSortLabel
+                          active={sortConfig.key === column.key}
+                          direction={sortConfig.direction || 'asc'}
+                          onClick={() => requestSort(column.key)}
+                        >
+                          {column.label}
+                        </TableSortLabel>
+                      ) : (
+                        column.label
+                      )}
                     </TableCell>
                   ))}
-                  <TableCell sx={{ ...cellStyles, ...headerCellStyles }}>
-                    Phone
-                  </TableCell>
-                  <TableCell sx={{ ...cellStyles, ...headerCellStyles }}>
-                    DOT
-                  </TableCell>
-                  <TableCell sx={{ ...cellStyles, ...headerCellStyles }}>
-                    MC/MX/FF
-                  </TableCell>
                 </TableRow>
               </TableHead>
               <>
