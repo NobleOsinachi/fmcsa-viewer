@@ -4,8 +4,6 @@ export const formatDate = (dateString: string) => {
 };
 
 export const getTimestamp = (date: string) => {
-  if (!date) return;
-
   const _date = new Date(date);
   return Math.floor(_date.getTime() / 1000);
 }

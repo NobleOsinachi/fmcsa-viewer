@@ -17,6 +17,8 @@ import {
   debounce,
   Button,
   SelectChangeEvent,
+  TableSortLabel,
+  TableSortLabelProps,
 } from '@mui/material';
 import { Record } from '../common/types';
 import { SearchSharp, FilterList } from '@mui/icons-material';
@@ -48,6 +50,13 @@ const Viewer = () => {
   const [operatingStatus, setOperatingStatus] = useState('');
   const [createdDt, setCreatedDt] = useState('');
   const [modifiedDt, setModifiedDt] = useState('');
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: 'asc' | 'desc' | null;
+  }>({
+    key: '',
+    direction: null,
+  });
 
   useEffect(() => {
     fetch('/fmsca_records.csv')
@@ -64,8 +73,40 @@ const Viewer = () => {
   }, []);
 
   useEffect(() => {
+    const sortedRecords = [...records].sort((a, b) => {
+      if (sortConfig.key) {
+        const aVal = a[sortConfig.key as keyof Record];
+        const bVal = b[sortConfig.key as keyof Record];
+
+        if (
+          sortConfig.key === 'created_dt' ||
+          sortConfig.key === 'data_source_modified_dt' ||
+          sortConfig.key === 'out_of_service_date'
+        ) {
+          return sortConfig.direction === 'asc'
+            ? getTimestamp(aVal as string) - getTimestamp(bVal as string)
+            : getTimestamp(bVal as string) - getTimestamp(aVal as string);
+        }
+
+        if (sortConfig.key === 'power_units') {
+          return sortConfig.direction === 'asc'
+            ? Number(aVal) - Number(bVal)
+            : Number(bVal) - Number(aVal);
+        }
+
+        if (aVal < bVal) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aVal > bVal) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      }
+      return 0;
+    });
+
     setFilteredRecords(
-      records.filter(record => {
+      sortedRecords.filter(record => {
         const statusFilter =
           !operatingStatus ||
           record.operating_status.toLowerCase() === operatingStatus;
@@ -90,7 +131,7 @@ const Viewer = () => {
         );
       }),
     );
-  }, [filter, operatingStatus, createdDt, modifiedDt, records]);
+  }, [filter, operatingStatus, createdDt, modifiedDt, records, sortConfig]);
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -137,6 +178,14 @@ const Viewer = () => {
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     setModifiedDt(event.target.value);
+  };
+
+  const requestSort = (key: string) => {
+    let direction: 'asc' | 'desc' | null = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
   };
 
   return (
@@ -200,6 +249,45 @@ const Viewer = () => {
             <Table>
               <TableHead>
                 <TableRow>
+                  {[
+                    { key: 'created_dt', label: 'Created Date' },
+                    { key: 'data_source_modified_dt', label: 'Modified Date' },
+                    { key: 'entity_type', label: 'Entity Type' },
+                    { key: 'operating_status', label: 'Operating Status' },
+                    { key: 'legal_name', label: 'Legal Name' },
+                    { key: 'dba_name', label: 'DBA Name' },
+                    { key: 'physical_address', label: 'Physical Address' },
+                    { key: 'power_units', label: 'Power Units' },
+                    {
+                      key: 'out_of_service_date',
+                      label: 'Out of Service Date',
+                    },
+                  ].map(column => (
+                    <TableCell
+                      key={column.key}
+                      sx={{ ...cellStyles, ...headerCellStyles }}
+                      sortDirection={sortConfig.key === column.key ? (sortConfig.direction as TableSortLabelProps['direction']) : undefined}
+                    >
+                      <TableSortLabel
+                        active={sortConfig.key === column.key}
+                        direction={sortConfig.direction || 'asc'}
+                        onClick={() => requestSort(column.key)}
+                      >
+                        {column.label}
+                      </TableSortLabel>
+                    </TableCell>
+                  ))}
+                  <TableCell sx={{ ...cellStyles, ...headerCellStyles }}>
+                    Phone
+                  </TableCell>
+                  <TableCell sx={{ ...cellStyles, ...headerCellStyles }}>
+                    DOT
+                  </TableCell>
+                  <TableCell sx={{ ...cellStyles, ...headerCellStyles }}>
+                    MC/MX/FF
+                  </TableCell>
+                </TableRow>
+                {/* <TableRow>
                   <TableCell sx={{ ...cellStyles, ...headerCellStyles }}>
                     Created Date
                   </TableCell>
@@ -236,7 +324,7 @@ const Viewer = () => {
                   <TableCell sx={{ ...cellStyles, ...headerCellStyles }}>
                     Out of Service Date
                   </TableCell>
-                </TableRow>
+                </TableRow> */}
               </TableHead>
               <>
                 {activePageRecords.length ? (
