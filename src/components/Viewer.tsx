@@ -19,6 +19,8 @@ import {
   SelectChangeEvent,
   TableSortLabel,
   TableSortLabelProps,
+  Backdrop,
+  CircularProgress,
 } from '@mui/material';
 import { Record } from '../common/types';
 import { SearchSharp, FilterList } from '@mui/icons-material';
@@ -50,6 +52,7 @@ const Viewer = () => {
   const [operatingStatus, setOperatingStatus] = useState('');
   const [createdDt, setCreatedDt] = useState('');
   const [modifiedDt, setModifiedDt] = useState('');
+  const [loading, setLoading] = useState(true);
   const [sortConfig, setSortConfig] = useState<{
     key: string;
     direction: 'asc' | 'desc' | null;
@@ -69,6 +72,8 @@ const Viewer = () => {
 
         setRecords(parsedData.data);
         setFilteredRecords(parsedData.data);
+      }).finally(() => {
+        setLoading(false);
       });
   }, []);
 
@@ -190,6 +195,9 @@ const Viewer = () => {
 
   return (
     <Container style={{ maxWidth: 1440 }}>
+      <Backdrop open={loading} style={{ zIndex: 1000 }}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
       <Box sx={{ paddingTop: 4, paddingBottom: 2 }}>
         <Typography
           color="secondary"
