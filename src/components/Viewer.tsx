@@ -374,19 +374,17 @@ const Viewer = () => {
                       </TableRow>
                     ))}
                   </TableBody>
-                ) : (
-                  <TableBody sx={{ textAlign: 'center', width: '100%' }}>
-                    <TableCell
-                      sx={{ ...cellStyles, textAlign: 'center' }}
-                      colSpan={12}
-                    >
-                      No records found!
-                    </TableCell>
-                  </TableBody>
-                )}
+                ) : null}
               </>
             </Table>
           </TableContainer>
+          {activePageRecords.length === 0 && (
+            <Typography
+              sx={{ textAlign: 'center', width: '100%', marginTop: 2 }}
+            >
+              No records found!
+            </Typography>
+          )}
           <TablePagination
             rowsPerPageOptions={[10, 25, 50]}
             component="div"
