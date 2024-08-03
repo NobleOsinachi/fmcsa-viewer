@@ -287,44 +287,6 @@ const Viewer = () => {
                     MC/MX/FF
                   </TableCell>
                 </TableRow>
-                {/* <TableRow>
-                  <TableCell sx={{ ...cellStyles, ...headerCellStyles }}>
-                    Created Date
-                  </TableCell>
-                  <TableCell sx={{ ...cellStyles, ...headerCellStyles }}>
-                    Modified Date
-                  </TableCell>
-                  <TableCell sx={{ ...cellStyles, ...headerCellStyles }}>
-                    Entity Type
-                  </TableCell>
-                  <TableCell sx={{ ...cellStyles, ...headerCellStyles }}>
-                    Operating Status
-                  </TableCell>
-                  <TableCell sx={{ ...cellStyles, ...headerCellStyles }}>
-                    Legal Name
-                  </TableCell>
-                  <TableCell sx={{ ...cellStyles, ...headerCellStyles }}>
-                    DBA Name
-                  </TableCell>
-                  <TableCell sx={{ ...cellStyles, ...headerCellStyles }}>
-                    Physical Address
-                  </TableCell>
-                  <TableCell sx={{ ...cellStyles, ...headerCellStyles }}>
-                    Phone
-                  </TableCell>
-                  <TableCell sx={{ ...cellStyles, ...headerCellStyles }}>
-                    DOT
-                  </TableCell>
-                  <TableCell sx={{ ...cellStyles, ...headerCellStyles }}>
-                    MC/MX/FF
-                  </TableCell>
-                  <TableCell sx={{ ...cellStyles, ...headerCellStyles }}>
-                    Power Units
-                  </TableCell>
-                  <TableCell sx={{ ...cellStyles, ...headerCellStyles }}>
-                    Out of Service Date
-                  </TableCell>
-                </TableRow> */}
               </TableHead>
               <>
                 {activePageRecords.length ? (

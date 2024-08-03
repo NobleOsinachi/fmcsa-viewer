@@ -62,7 +62,7 @@ const ViewerFilterDrawer = ({
               Authorized for Property
             </MenuItem>
             <MenuItem value="active">Active</MenuItem>
-            <MenuItem value="OUT-OF-SERVICE">Out Of Service</MenuItem>
+            <MenuItem value="out-of-service">Out Of Service</MenuItem>
           </Select>
           <FormHelperText>Operating Status</FormHelperText>
         </FormControl>
