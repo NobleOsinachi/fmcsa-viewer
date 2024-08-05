@@ -197,7 +197,7 @@ const Viewer = () => {
   };
 
   return (
-    <Container style={{ maxWidth: 1440 }}>
+    <Container style={{ maxWidth: 1440 }} sx={{ pb: 4 }}>
       <Backdrop open={loading} style={{ zIndex: 1000 }}>
         <CircularProgress color="inherit" />
       </Backdrop>
