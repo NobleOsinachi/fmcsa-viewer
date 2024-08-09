@@ -30,6 +30,7 @@ import ViewerFilterDrawer from './ViewerFilterDrawer';
 import PivotViewer from './PivotViewer';
 import { columns } from '../common/constants';
 import OutOfServiceBarChart from './BarChart';
+import { useSearchParams } from 'react-router-dom';
 
 const cellStyles = {
   borderColor: 'grey.200',
@@ -51,11 +52,13 @@ const Viewer = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [filter, setFilter] = useState('');
+  const [search, setSearch] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [operatingStatus, setOperatingStatus] = useState('');
   const [createdDt, setCreatedDt] = useState('');
   const [modifiedDt, setModifiedDt] = useState('');
   const [loading, setLoading] = useState(true);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [sortConfig, setSortConfig] = useState<{
     key: string;
     direction: 'asc' | 'desc' | null;
@@ -63,6 +66,21 @@ const Viewer = () => {
     key: '',
     direction: null,
   });
+
+  useEffect(() => {
+    const search = searchParams.get('search') || "";
+    setFilter(search);
+    setSearch(search);
+
+    const operatingStatus = searchParams.get('operating_status') || "";
+    setOperatingStatus(operatingStatus);
+    
+    const createdDate = searchParams.get('created_date') || "";
+    setCreatedDt(createdDate);
+    
+    const modifiedDate = searchParams.get('modified_date') || "";
+    setModifiedDt(modifiedDate);
+  }, [])
 
   useEffect(() => {
     fetch('/fmsca_records.csv')
@@ -156,16 +174,23 @@ const Viewer = () => {
   const debounceFilter = useCallback(
     debounce(value => {
       setFilter(value);
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set('search', value);
+      setSearchParams(newSearchParams);
     }, 300),
-    [],
+    [searchParams],
   );
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
     debounceFilter(e.target.value);
   };
 
   const handleOperatingStatusChange = (event: SelectChangeEvent<string>) => {
     setOperatingStatus(event.target.value as string);
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set('operating_status', event.target.value);
+    setSearchParams(newSearchParams);
   };
 
   const toggleDrawer = () => {
@@ -181,12 +206,18 @@ const Viewer = () => {
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     setCreatedDt(event.target.value);
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set('created_date', event.target.value);
+    setSearchParams(newSearchParams);
   };
 
   const handleModifiedDtChange = (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     setModifiedDt(event.target.value);
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set('modified_date', event.target.value);
+    setSearchParams(newSearchParams);
   };
 
   const requestSort = (key: string) => {
@@ -230,6 +261,7 @@ const Viewer = () => {
                 placeholder="Search"
                 variant="outlined"
                 fullWidth
+                value={search}
                 onChange={handleFilterChange}
                 InputProps={{
                   sx: { borderRadius: 2, fontSize: 14 },

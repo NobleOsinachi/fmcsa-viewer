@@ -71,22 +71,21 @@ const PivotViewer = ({ records }: { records: Record[] }) => {
     if (urlRows) {
       let rowsArray: any[] = [];
 
-      if (urlRows) {
         try {
           rowsArray = JSON.parse(urlRows);
         } catch (error) {
           rowsArray = []
           console.error("Failed to parse 'rows' from URL:", error);
         }
-      }
 
       const rowLabels = rowsArray.map((key) => {
-        if (!records.some((record: any) => record[key])) {
-          return null;
-        }
 
         if ((key.includes("date") || key.includes("dt"))) {
           return capitalize(key)
+        }
+
+        if (!records.some((record: any) => record[key])) {
+          return null;
         }
         
         return columns.find(item => item.label === capitalize(key))?.label

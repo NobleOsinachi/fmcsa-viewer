@@ -9,7 +9,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import React from 'react';
+import React, { memo } from 'react';
 
 interface TViewerFilterDrawer {
   drawerOpen: boolean;
@@ -93,4 +93,4 @@ const ViewerFilterDrawer = ({
   );
 };
 
-export default ViewerFilterDrawer;
+export default memo(ViewerFilterDrawer);
