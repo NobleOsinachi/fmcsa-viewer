@@ -93,7 +93,7 @@ const PivotViewer = ({ records }: { records: Record[] }) => {
   }, []);
 
   return (
-    <Box m={5} sx={{ overflowX: 'auto' }} py={5}>
+    <Box m={5} ml={0} sx={{ overflowX: 'auto' }} py={5}>
       <PivotTableUI
         key={dataKey}
         data={filteredRecords}

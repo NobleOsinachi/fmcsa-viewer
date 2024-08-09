@@ -29,6 +29,7 @@ import { formatDate, getTimestamp } from '../common/utils';
 import ViewerFilterDrawer from './ViewerFilterDrawer';
 import PivotViewer from './PivotViewer';
 import { columns } from '../common/constants';
+import OutOfServiceBarChart from './BarChart';
 
 const cellStyles = {
   borderColor: 'grey.200',
@@ -360,6 +361,7 @@ const Viewer = () => {
             </Typography>
           )}
           <PivotViewer records={activePageRecords} />
+          <OutOfServiceBarChart records={activePageRecords.filter((record) => record.out_of_service_date)} />
         </CardContent>
       </Card>
     </Container>
