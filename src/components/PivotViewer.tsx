@@ -1,11 +1,12 @@
 import { Box } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { Record } from '../common/types';
-import PivotTableUI from 'react-pivottable/PivotTableUI';
+import PivotTableUI, { PivotTableUIProps } from 'react-pivottable/PivotTableUI';
 import 'react-pivottable/pivottable.css';
 import { format, getYear, getISOWeek } from 'date-fns';
 import { columns } from '../common/constants';
-import { capitalize } from '../common/utils';
+import { capitalize, snake_format } from '../common/utils';
+import { useSearchParams } from 'react-router-dom';
 
 const columnsToInclude = columns.map(col => col.key);
 
@@ -15,13 +16,18 @@ const preprocessData = (records: Record[]): Record[] => {
 
     columnsToInclude.forEach(key => {
       if (record[key]) {
-        const matchedLabel = columns.find((item) => item.key === key)?.label; // Get label and replace the key for better accessibility
+        const matchedLabel = columns.find(item => item.key === key)?.label; // Get label and replace the key for better accessibility
         filteredRecord[matchedLabel || capitalize(key)] = record[key];
         if (key.includes('dt')) {
           const date = new Date(record[key]);
-          filteredRecord[`${matchedLabel || capitalize(key)} Year`] = getYear(date);
-          filteredRecord[`${matchedLabel || capitalize(key)} Month`] = format(date, 'MMMM');
-          filteredRecord[`${matchedLabel || capitalize(key)} Week`] = getISOWeek(date);
+          filteredRecord[`${matchedLabel || capitalize(key)} Year`] =
+            getYear(date);
+          filteredRecord[`${matchedLabel || capitalize(key)} Month`] = format(
+            date,
+            'MMMM',
+          );
+          filteredRecord[`${matchedLabel || capitalize(key)} Week`] =
+            getISOWeek(date);
         }
       }
     });
@@ -41,6 +47,7 @@ const PivotViewer = ({ records }: { records: Record[] }) => {
   const [pivotState, setPivotState] = useState<any>({});
   const [filteredRecords, setFilteredRecords] = useState<Record[]>([]);
   const [dataKey, setDataKey] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     const filteredData = preprocessData(records);
@@ -49,12 +56,48 @@ const PivotViewer = ({ records }: { records: Record[] }) => {
     setPivotState((prevState: any) => ({ ...prevState, data: filteredData })); // Update data on re-render but keeps the selected filters
   }, [records]);
 
+  const updateTable = (s: PivotTableUIProps) => {
+    setPivotState(s);
+    const newSearchParams = new URLSearchParams(searchParams);
+    const snakeStrings = s.rows?.map((row) => snake_format(row))
+    
+    newSearchParams.set('rows', JSON.stringify(snakeStrings));
+    setSearchParams(newSearchParams);
+  };
+
+  useEffect(() => {
+    const urlRows = searchParams.get('rows');
+    
+    if (urlRows) {
+      let rowsArray: any[] = [];
+
+      if (urlRows) {
+        try {
+          rowsArray = JSON.parse(urlRows);
+        } catch (error) {
+          rowsArray = []
+          console.error("Failed to parse 'rows' from URL:", error);
+        }
+      }
+
+      const rowLabels = rowsArray.map((key) => {
+        if (key.includes("date") || key.includes("dt")) {
+          return capitalize(key)
+        }
+        
+        return columns.find(item => item.label === capitalize(key))?.label
+      })
+      
+      setPivotState((prevState: any) => ({ ...prevState, rows: rowLabels || [] }));
+    }
+  }, []);
+
   return (
-    <Box m={5} sx={{ overflowX: "auto" }} py={5}>
+    <Box m={5} sx={{ overflowX: 'auto' }} py={5}>
       <PivotTableUI
         key={dataKey}
         data={filteredRecords}
-        onChange={s => setPivotState(s)}
+        onChange={updateTable}
         {...pivotState}
       />
     </Box>

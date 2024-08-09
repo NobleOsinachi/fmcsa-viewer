@@ -1,5 +1,6 @@
 import { createTheme, ThemeProvider } from '@mui/material';
 import Viewer from './components/Viewer';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 function App() {
   const theme = createTheme({
@@ -16,9 +17,16 @@ function App() {
     }
   });
 
+  const router = createBrowserRouter([
+    {
+      path: "/",
+      element: <Viewer />,
+    },
+  ]);
+
   return (
     <ThemeProvider theme={theme}>
-      <Viewer />
+      <RouterProvider router={router} />
     </ThemeProvider>
   );
 }
