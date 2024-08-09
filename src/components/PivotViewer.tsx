@@ -81,17 +81,21 @@ const PivotViewer = ({ records }: { records: Record[] }) => {
       }
 
       const rowLabels = rowsArray.map((key) => {
-        if (key.includes("date") || key.includes("dt")) {
+        if (!records.some((record: any) => record[key])) {
+          return null;
+        }
+
+        if ((key.includes("date") || key.includes("dt"))) {
           return capitalize(key)
         }
         
         return columns.find(item => item.label === capitalize(key))?.label
-      })
-      
+      }).filter((data) => data)
+
       setPivotState((prevState: any) => ({ ...prevState, rows: rowLabels || [] }));
     }
   }, []);
-
+  
   return (
     <Box m={5} ml={0} sx={{ overflowX: 'auto' }} py={5}>
       <PivotTableUI

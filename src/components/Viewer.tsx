@@ -360,8 +360,16 @@ const Viewer = () => {
               No records found!
             </Typography>
           )}
-          <PivotViewer records={activePageRecords} />
-          <OutOfServiceBarChart records={activePageRecords.filter((record) => record.out_of_service_date)} />
+          {!loading && (
+            <>
+              <PivotViewer records={activePageRecords} />
+              <OutOfServiceBarChart
+                records={activePageRecords.filter(
+                  record => record.out_of_service_date,
+                )}
+              />
+            </>
+          )}
         </CardContent>
       </Card>
     </Container>
