@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   Drawer,
   FormControl,
   FormHelperText,
@@ -16,10 +17,13 @@ interface TViewerFilterDrawer {
   toggleDrawer: () => void;
   operatingStatus: string;
   handleOperatingStatusChange: (event: SelectChangeEvent<string>) => void;
+  entity: string;
+  handleEntityChange: (event: SelectChangeEvent<string>) => void;
   createdDt: string;
   handleCreatedDtChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   modifiedDt: string;
   handleModifiedDtChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  resetTableState: () => void;
 }
 
 const ViewerFilterDrawer = ({
@@ -27,10 +31,13 @@ const ViewerFilterDrawer = ({
   toggleDrawer,
   operatingStatus,
   handleOperatingStatusChange,
+  entity,
+  handleEntityChange,
   createdDt,
   handleCreatedDtChange,
   modifiedDt,
   handleModifiedDtChange,
+  resetTableState
 }: TViewerFilterDrawer) => {
   return (
     <Drawer
@@ -47,6 +54,27 @@ const ViewerFilterDrawer = ({
         <Typography color="secondary" variant="h6" gutterBottom>
           Additional Filters
         </Typography>
+        <FormControl fullWidth margin="normal">
+          <Select
+            value={entity}
+            onChange={handleEntityChange}
+            displayEmpty
+            inputProps={{ 'aria-label': 'Without label' }}
+          >
+            <MenuItem value="">
+              <em>None</em>
+            </MenuItem>
+            <MenuItem value="FREIGHT FORWARDER">FREIGHT FORWARDER</MenuItem>
+            <MenuItem value="CARRIER">
+              CARRIER
+            </MenuItem>
+            <MenuItem value="BROKER">BROKER</MenuItem>
+            <MenuItem value="CARRIER/IEP">CARRIER/IEP</MenuItem>
+            <MenuItem value="IEP">IEP</MenuItem>
+            <MenuItem value="CARRIER/SHIPPER">CARRIER/SHIPPER</MenuItem>
+          </Select>
+          <FormHelperText>Entity Type</FormHelperText>
+        </FormControl>
         <FormControl fullWidth margin="normal">
           <Select
             value={operatingStatus}
@@ -88,6 +116,9 @@ const ViewerFilterDrawer = ({
           fullWidth
           margin="normal"
         />
+        <Button variant="outlined" color='secondary' sx={{ mt: 2 }} onClick={resetTableState}>
+          Reset to Default
+        </Button>
       </Box>
     </Drawer>
   );

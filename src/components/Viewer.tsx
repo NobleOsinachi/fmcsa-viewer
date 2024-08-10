@@ -4,83 +4,123 @@ import {
   Container,
   Box,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
   TablePagination,
-  TableRow,
   Card,
   CardContent,
   InputAdornment,
   debounce,
   Button,
   SelectChangeEvent,
-  TableSortLabel,
-  TableSortLabelProps,
   Backdrop,
   CircularProgress,
+  Badge,
 } from '@mui/material';
 import { Record } from '../common/types';
 import { SearchSharp, FilterList } from '@mui/icons-material';
 import { CustomTextField } from './Form';
-import { formatDate, getTimestamp } from '../common/utils';
+import {
+  formatDate,
+  getTimestamp,
+  isTableFiltered,
+  loadTableStateFromLocalStorage,
+} from '../common/utils';
 import ViewerFilterDrawer from './ViewerFilterDrawer';
 import PivotViewer from './PivotViewer';
 import { columns } from '../common/constants';
 import OutOfServiceBarChart from './BarChart';
 import { useSearchParams } from 'react-router-dom';
-
-const cellStyles = {
-  borderColor: 'grey.200',
-  paddingY: '8px',
-  whiteSpace: 'nowrap',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-};
-
-const headerCellStyles = {
-  textTransform: 'uppercase',
-  fontSize: 12,
-  fontWeight: 600,
-};
+import { DataGrid, GridSortDirection, GridSortModel } from '@mui/x-data-grid';
+import TemplateModal from './TemplateModal';
 
 const Viewer = () => {
+  const savedState = loadTableStateFromLocalStorage();
+
   const [records, setRecords] = useState<Record[]>([]);
   const [filteredRecords, setFilteredRecords] = useState<Record[]>([]);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [filter, setFilter] = useState('');
+  const [page, setPage] = useState(savedState?.page || 0);
+  const [rowsPerPage, setRowsPerPage] = useState(savedState?.rowsPerPage || 10);
+  const [filter, setFilter] = useState(savedState?.filter || '');
   const [search, setSearch] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [operatingStatus, setOperatingStatus] = useState('');
-  const [createdDt, setCreatedDt] = useState('');
-  const [modifiedDt, setModifiedDt] = useState('');
+  const [operatingStatus, setOperatingStatus] = useState(
+    savedState?.operatingStatus || '',
+  );
+  const [entity, setEntity] = useState(savedState?.entity || '');
+  const [createdDt, setCreatedDt] = useState(savedState?.createdDt || '');
+  const [modifiedDt, setModifiedDt] = useState(savedState?.modifiedDt || '');
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [sortConfig, setSortConfig] = useState<{
-    key: string;
-    direction: 'asc' | 'desc' | null;
-  }>({
-    key: '',
-    direction: null,
-  });
+  const [initialSortingState, setInitialSortingState] = useState<GridSortModel>(
+    savedState?.sortingState || [],
+  );
+  const [templateModalOpen, setTemplateModalOpen] = useState(false);
+  const [templates, setTemplates] = useState(
+    JSON.parse(localStorage.getItem('templates') || '{}'),
+  );
+  const [isFiltered, setIsFiltered] = useState(false);
+
+  const toggleTemplateModal = () => {
+    setTemplateModalOpen(!templateModalOpen);
+  };
 
   useEffect(() => {
-    const search = searchParams.get('search') || "";
+    if (loading) return;
+
+    // Load initial state from searchParams
+
+    const search = searchParams.get('search') || '';
     setFilter(search);
     setSearch(search);
 
-    const operatingStatus = searchParams.get('operating_status') || "";
+    const operatingStatus = searchParams.get('operating_status') || '';
     setOperatingStatus(operatingStatus);
-    
-    const createdDate = searchParams.get('created_date') || "";
+
+    const entity = searchParams.get('entity') || '';
+    setEntity(entity);
+
+    const createdDate = searchParams.get('created_date') || '';
     setCreatedDt(createdDate);
-    
-    const modifiedDate = searchParams.get('modified_date') || "";
+
+    const modifiedDate = searchParams.get('modified_date') || '';
     setModifiedDt(modifiedDate);
-  }, [])
+
+    const initSortState = [];
+
+    for (const { key } of columns) {
+      const sort = searchParams.get(`${key}_sort`) as GridSortDirection;
+      if (sort) {
+        initSortState.push({ field: key, sort: sort || null });
+      }
+    }
+
+    setInitialSortingState(initSortState);
+  }, [loading, searchParams]);
+
+  useEffect(() => {
+    const tableState = {
+      sortingState: initialSortingState,
+      filter,
+      operatingStatus,
+      entity,
+      createdDt,
+      modifiedDt,
+      rowsPerPage,
+      page,
+      path: window.location.pathname + window.location.search,
+    };
+
+    !loading && saveTableStateToLocalStorage(tableState);
+  }, [
+    loading,
+    initialSortingState,
+    filter,
+    operatingStatus,
+    entity,
+    createdDt,
+    modifiedDt,
+    rowsPerPage,
+    page,
+  ]);
 
   useEffect(() => {
     fetch('/fmsca_records.csv')
@@ -100,43 +140,14 @@ const Viewer = () => {
   }, []);
 
   useEffect(() => {
-    const sortedRecords = [...records].sort((a, b) => {
-      if (sortConfig.key) {
-        const aVal = a[sortConfig.key as keyof Record];
-        const bVal = b[sortConfig.key as keyof Record];
-
-        if (
-          sortConfig.key === 'created_dt' ||
-          sortConfig.key === 'data_source_modified_dt' ||
-          sortConfig.key === 'out_of_service_date'
-        ) {
-          return sortConfig.direction === 'asc'
-            ? getTimestamp(aVal as string) - getTimestamp(bVal as string)
-            : getTimestamp(bVal as string) - getTimestamp(aVal as string);
-        }
-
-        if (sortConfig.key === 'power_units') {
-          return sortConfig.direction === 'asc'
-            ? Number(aVal) - Number(bVal)
-            : Number(bVal) - Number(aVal);
-        }
-
-        if (aVal < bVal) {
-          return sortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (aVal > bVal) {
-          return sortConfig.direction === 'asc' ? 1 : -1;
-        }
-        return 0;
-      }
-      return 0;
-    });
-
     setFilteredRecords(
-      sortedRecords.filter(record => {
+      records.filter(record => {
         const statusFilter =
           !operatingStatus ||
-          record.operating_status.toLowerCase() === operatingStatus;
+          record.operating_status.toLowerCase() ===
+            operatingStatus.toLowerCase();
+        const entityType =
+          !entity || record.entity_type.toLowerCase() === entity.toLowerCase();
         const textFilter =
           record.legal_name.toLowerCase().includes(filter.toLowerCase()) ||
           record.dba_name.toLowerCase().includes(filter.toLowerCase()) ||
@@ -154,11 +165,22 @@ const Viewer = () => {
           !modifiedDt ||
           getTimestamp(modifiedDate) === getTimestamp(modifiedDt);
         return (
-          statusFilter && textFilter && createdDateFilter && modifiedDateFilter
+          statusFilter &&
+          entityType &&
+          textFilter &&
+          createdDateFilter &&
+          modifiedDateFilter
         );
       }),
     );
-  }, [filter, operatingStatus, createdDt, modifiedDt, records, sortConfig]);
+
+    setPage(0);
+    setIsFiltered(isTableFiltered());
+  }, [filter, operatingStatus, createdDt, modifiedDt, entity, records]);
+
+  useEffect(() => {
+    setIsFiltered(isTableFiltered());
+  }, [initialSortingState]);
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -193,8 +215,33 @@ const Viewer = () => {
     setSearchParams(newSearchParams);
   };
 
+  const handleEntityChange = (event: SelectChangeEvent<string>) => {
+    setEntity(event.target.value as string);
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set('entity', event.target.value);
+    setSearchParams(newSearchParams);
+  };
+
   const toggleDrawer = () => {
     setDrawerOpen(!drawerOpen);
+  };
+
+  const changeSortingState = (model: GridSortModel, details: any) => {
+    if (model.length) {
+      const newSearchParams = new URLSearchParams(searchParams);
+      // Remove any existing sort parameters
+      Array.from(newSearchParams.keys()).forEach(key => {
+        if (key.endsWith('_sort')) {
+          newSearchParams.delete(key);
+        }
+      });
+
+      // Add the new sort parameter
+      if (model.length) {
+        newSearchParams.set(`${model[0].field}_sort`, model[0].sort || '');
+      }
+      setSearchParams(newSearchParams);
+    }
   };
 
   const activePageRecords = filteredRecords.slice(
@@ -220,12 +267,112 @@ const Viewer = () => {
     setSearchParams(newSearchParams);
   };
 
-  const requestSort = (key: string) => {
-    let direction: 'asc' | 'desc' | null = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
+  const saveTableStateToLocalStorage = (state: any) => {
+    localStorage.setItem('tableState', JSON.stringify(state));
+  };
+
+  const resetTableState = () => {
+    localStorage.removeItem('tableState');
+    setInitialSortingState([]);
+    setFilter('');
+    setOperatingStatus('');
+    setEntity('');
+    setCreatedDt('');
+    setModifiedDt('');
+    setRowsPerPage(10);
+    setPage(0);
+
+    // Clear URL search parameters
+    const newSearchParams = new URLSearchParams();
+    setSearchParams(newSearchParams);
+  };
+
+  const handleSaveTemplate = (templateName: string) => {
+    const currentTemplates = { ...templates };
+    const newTemplate = {
+      sortingState: initialSortingState,
+      filter,
+      operatingStatus,
+      entity,
+      createdDt,
+      modifiedDt,
+      rowsPerPage,
+      page,
+      path: window.location.pathname + window.location.search,
+    };
+    currentTemplates[templateName] = newTemplate;
+    setTemplates(currentTemplates);
+    localStorage.setItem('templates', JSON.stringify(currentTemplates));
+  };
+
+  const handleLoadTemplate = (templateName: string) => {
+    const templates = JSON.parse(localStorage.getItem('templates') || '{}');
+    if (templates[templateName]) {
+      const savedState = templates[templateName];
+      setInitialSortingState(savedState.sortingState);
+      setFilter(savedState.filter);
+      setOperatingStatus(savedState.operatingStatus);
+      setEntity(savedState.entity);
+      setCreatedDt(savedState.createdDt);
+      setModifiedDt(savedState.modifiedDt);
+      setRowsPerPage(savedState.rowsPerPage);
+      setPage(savedState.page);
+
+      if (savedState.path) {
+        const cleanedPath = savedState.path.startsWith('/?')
+          ? savedState.path.slice(2)
+          : savedState.path;
+
+        setSearchParams(cleanedPath);
+      }
     }
-    setSortConfig({ key, direction });
+  };
+
+  const handleShare = (templateName: string) => {
+    const templates = JSON.parse(localStorage.getItem('templates') || '{}');
+    if (templates[templateName]) {
+      const savedState = templates[templateName];
+      window.open(savedState.path, '_blank');
+    }
+  };
+
+  const handleCopyLink = (templateName: string) => {
+    const templates = JSON.parse(localStorage.getItem('templates') || '{}');
+    if (templates[templateName]) {
+      const savedState = templates[templateName];
+      // Get the origin (protocol + host)
+      const origin = window.location.origin; 
+      const fullUrlWithoutParams = origin + savedState.path;
+
+      navigator.clipboard.writeText(fullUrlWithoutParams);
+    }
+  };
+
+  const handleTemplateAction = (templateName: string, action: string) => {
+    switch (action) {
+      case 'delete':
+        handleDeleteTemplate(templateName);
+        break;
+
+      case 'load':
+        handleLoadTemplate(templateName);
+        break;
+
+      case 'copy_link':
+        handleCopyLink(templateName);
+        break;
+
+      case 'share_template':
+        handleShare(templateName);
+        break;
+    }
+  };
+
+  const handleDeleteTemplate = (templateName: string) => {
+    const updatedTemplates = { ...templates };
+    delete updatedTemplates[templateName];
+    setTemplates(updatedTemplates);
+    localStorage.setItem('templates', JSON.stringify(updatedTemplates));
   };
 
   return (
@@ -256,7 +403,20 @@ const Viewer = () => {
             mb={2}
             flexWrap="wrap"
           >
-            <Box display="flex" alignItems={'center'}>
+            <Box
+              display="flex"
+              alignItems={'center'}
+              flexWrap={{
+                xs: 'wrap',
+                md: 'nowrap',
+              }}
+              gap={2}
+              justifyContent={{
+                xs: 'center',
+                md: 'start',
+              }}
+              minWidth={{ xs: '100%', md: '80%', lg: '60%' }}
+            >
               <CustomTextField
                 placeholder="Search"
                 variant="outlined"
@@ -273,14 +433,31 @@ const Viewer = () => {
                 }}
               />
 
+              <Badge color="secondary" variant="dot" invisible={!isFiltered}>
+                <Button
+                  variant="outlined"
+                  startIcon={<FilterList />}
+                  onClick={toggleDrawer}
+                  sx={{ marginLeft: 2 }}
+                >
+                  Filters
+                </Button>
+              </Badge>
+
               <Button
                 variant="outlined"
-                startIcon={<FilterList />}
-                onClick={toggleDrawer}
                 sx={{ marginLeft: 2 }}
+                onClick={toggleTemplateModal}
               >
-                Filters
+                Save/Load Templates
               </Button>
+              <TemplateModal
+                open={templateModalOpen}
+                onClose={toggleTemplateModal}
+                onSaveTemplate={handleSaveTemplate}
+                templates={templates}
+                handleTemplateAction={handleTemplateAction}
+              />
             </Box>
             <TablePagination
               rowsPerPageOptions={[10, 25, 50]}
@@ -296,96 +473,35 @@ const Viewer = () => {
             drawerOpen={drawerOpen}
             toggleDrawer={toggleDrawer}
             operatingStatus={operatingStatus}
+            entity={entity}
+            handleEntityChange={handleEntityChange}
             handleOperatingStatusChange={handleOperatingStatusChange}
             createdDt={createdDt}
             handleCreatedDtChange={handleCreatedDtChange}
             modifiedDt={modifiedDt}
             handleModifiedDtChange={handleModifiedDtChange}
+            resetTableState={resetTableState}
           />
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  {columns.map(column => (
-                    <TableCell
-                      key={column.key}
-                      sx={{ ...cellStyles, ...headerCellStyles }}
-                      sortDirection={
-                        sortConfig.key === column.key
-                          ? (sortConfig.direction as TableSortLabelProps['direction'])
-                          : undefined
-                      }
-                    >
-                      {column.sortable ? (
-                        <TableSortLabel
-                          active={sortConfig.key === column.key}
-                          direction={sortConfig.direction || 'asc'}
-                          onClick={() => requestSort(column.key)}
-                        >
-                          {column.label}
-                        </TableSortLabel>
-                      ) : (
-                        column.label
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <>
-                {activePageRecords.length ? (
-                  <TableBody>
-                    {activePageRecords.map(record => (
-                      <TableRow
-                        key={
-                          record.created_dt +
-                          record.data_source_modified_dt +
-                          record.entity_type +
-                          record.legal_name
-                        }
-                        sx={{ paddingY: 1 }}
-                      >
-                        <TableCell sx={cellStyles}>
-                          {record.created_dt && formatDate(record.created_dt)}
-                        </TableCell>
-                        <TableCell sx={cellStyles}>
-                          {record.data_source_modified_dt &&
-                            formatDate(record.data_source_modified_dt)}
-                        </TableCell>
-                        <TableCell sx={cellStyles}>
-                          {record.entity_type}
-                        </TableCell>
-                        <TableCell sx={cellStyles}>
-                          {record.operating_status}
-                        </TableCell>
-                        <TableCell sx={cellStyles}>
-                          {record.legal_name}
-                        </TableCell>
-                        <TableCell sx={cellStyles}>{record.dba_name}</TableCell>
-                        <TableCell sx={cellStyles}>
-                          {record.physical_address}
-                        </TableCell>
-                        <TableCell sx={cellStyles}>{record.phone}</TableCell>
-                        <TableCell sx={cellStyles}>
-                          {record.usdot_number}
-                        </TableCell>
-                        <TableCell sx={cellStyles}>
-                          {record.mc_mx_ff_number}
-                        </TableCell>
-                        <TableCell sx={cellStyles}>
-                          {record.power_units}
-                        </TableCell>
-                        <TableCell sx={cellStyles}>
-                          {record.out_of_service_date &&
-                            formatDate(record.out_of_service_date)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                ) : null}
-              </>
-            </Table>
-          </TableContainer>
-          {activePageRecords.length === 0 && (
+          {activePageRecords.length ? (
+            <Box sx={{ height: '70vh', width: '100%' }}>
+              <DataGrid
+                columns={columns.map(col => ({
+                  field: col.key,
+                  renderCell: col.key.includes('dt')
+                    ? ({ value }) => formatDate(value)
+                    : undefined,
+                  headerName: col.label,
+                  minWidth: 120,
+                }))}
+                rows={activePageRecords as any[]}
+                hideFooter
+                showCellVerticalBorder
+                hideFooterPagination
+                onSortModelChange={changeSortingState}
+                initialState={{ sorting: { sortModel: initialSortingState } }}
+              />
+            </Box>
+          ) : (
             <Typography
               sx={{ textAlign: 'center', width: '100%', marginTop: 2 }}
             >

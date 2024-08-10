@@ -36,7 +36,9 @@ export const getBarChartData = (
   records.forEach(record => {
     if (record['out_of_service_date']) {
       const date = new Date(record['out_of_service_date']);
-      const monthName = new Intl.DateTimeFormat('en-US', { month: 'long' }).format(date);
+      const monthName = new Intl.DateTimeFormat('en-US', {
+        month: 'long',
+      }).format(date);
       monthMap[monthName] = (monthMap[monthName] || 0) + 1;
     }
   });
@@ -45,4 +47,41 @@ export const getBarChartData = (
     month,
     count: monthMap[month],
   }));
+};
+
+export const isTableFiltered = (): boolean => {
+  const defaultState = {
+    columnOrder: [],
+    filter: '',
+    operatingStatus: '',
+    entity: '',
+    createdDt: '',
+    modifiedDt: '',
+    rowsPerPage: 10,
+    page: 0,
+    sortingState: [],
+  };
+
+  const savedState = JSON.parse(localStorage.getItem('tableState') || '{}');
+  
+  // Compare each part of the state to see if anything has been modified
+  return (
+    JSON.stringify(savedState.columnOrder || defaultState.columnOrder) !==
+      JSON.stringify(defaultState.columnOrder) ||
+    JSON.stringify(savedState.sortingState || defaultState.sortingState) !==
+      JSON.stringify(defaultState.sortingState) ||
+    savedState.filter !== defaultState.filter ||
+    savedState.operatingStatus !== defaultState.operatingStatus ||
+    savedState.entity !== defaultState.entity ||
+    savedState.createdDt !== defaultState.createdDt ||
+    savedState.modifiedDt !== defaultState.modifiedDt ||
+    savedState.rowsPerPage !== defaultState.rowsPerPage ||
+    savedState.page !== defaultState.page
+  );
+};
+
+
+export const loadTableStateFromLocalStorage = () => {
+  const state = localStorage.getItem('tableState');
+  return state ? JSON.parse(state) : null;
 };
