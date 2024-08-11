@@ -174,7 +174,6 @@ const Viewer = () => {
       }),
     );
 
-    setPage(0);
     setIsFiltered(isTableFiltered());
   }, [filter, operatingStatus, createdDt, modifiedDt, entity, records]);
 
@@ -199,6 +198,7 @@ const Viewer = () => {
       const newSearchParams = new URLSearchParams(searchParams);
       newSearchParams.set('search', value);
       setSearchParams(newSearchParams);
+      setPage(0);
     }, 300),
     [searchParams],
   );
@@ -213,6 +213,7 @@ const Viewer = () => {
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.set('operating_status', event.target.value);
     setSearchParams(newSearchParams);
+    setPage(0);
   };
 
   const handleEntityChange = (event: SelectChangeEvent<string>) => {
@@ -220,6 +221,7 @@ const Viewer = () => {
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.set('entity', event.target.value);
     setSearchParams(newSearchParams);
+    setPage(0);
   };
 
   const toggleDrawer = () => {
@@ -256,6 +258,7 @@ const Viewer = () => {
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.set('created_date', event.target.value);
     setSearchParams(newSearchParams);
+    setPage(0);
   };
 
   const handleModifiedDtChange = (
@@ -265,6 +268,7 @@ const Viewer = () => {
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.set('modified_date', event.target.value);
     setSearchParams(newSearchParams);
+    setPage(0);
   };
 
   const saveTableStateToLocalStorage = (state: any) => {
