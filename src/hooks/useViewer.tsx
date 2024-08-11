@@ -10,6 +10,13 @@ import { useSearchParams } from 'react-router-dom';
 import { GridSortDirection, GridSortModel } from '@mui/x-data-grid';
 import { debounce, SelectChangeEvent } from '@mui/material';
 import { columns } from '../common/constants';
+import {
+  copyToClipboardNotification,
+  deleteTemplateNotification,
+  resetNotification,
+  templateLoadedNotification,
+  templateSavedNotification,
+} from '../common/toasts';
 
 const useViewer = () => {
   const savedState = loadTableStateFromLocalStorage();
@@ -267,6 +274,8 @@ const useViewer = () => {
     // Clear URL search parameters
     const newSearchParams = new URLSearchParams();
     setSearchParams(newSearchParams);
+
+    resetNotification();
   };
 
   const handleSaveTemplate = (templateName: string) => {
@@ -285,6 +294,7 @@ const useViewer = () => {
     currentTemplates[templateName] = newTemplate;
     setTemplates(currentTemplates);
     localStorage.setItem('templates', JSON.stringify(currentTemplates));
+    templateSavedNotification(templateName);
   };
 
   const handleLoadTemplate = (templateName: string) => {
@@ -300,13 +310,14 @@ const useViewer = () => {
       setRowsPerPage(savedState.rowsPerPage);
       setPage(savedState.page);
 
-      if (savedState.path) {
+      if (savedState.path && savedState.path !== "/") {
         const cleanedPath = savedState.path.startsWith('/?')
           ? savedState.path.slice(2)
           : savedState.path;
 
         setSearchParams(cleanedPath);
       }
+      templateLoadedNotification(templateName);
     }
   };
 
@@ -327,6 +338,7 @@ const useViewer = () => {
       const fullUrlWithoutParams = origin + savedState.path;
 
       navigator.clipboard.writeText(fullUrlWithoutParams);
+      copyToClipboardNotification();
     }
   };
 
@@ -355,6 +367,7 @@ const useViewer = () => {
     delete updatedTemplates[templateName];
     setTemplates(updatedTemplates);
     localStorage.setItem('templates', JSON.stringify(updatedTemplates));
+    deleteTemplateNotification(templateName);
   };
 
   return {

@@ -1,6 +1,8 @@
 import { createTheme, ThemeProvider } from '@mui/material';
 import Viewer from './components/Viewer';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   const theme = createTheme({
@@ -27,6 +29,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <RouterProvider router={router} />
+      <ToastContainer />
     </ThemeProvider>
   );
 }
