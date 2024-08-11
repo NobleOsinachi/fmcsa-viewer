@@ -9,10 +9,14 @@ export const getTimestamp = (date: string) => {
   // const _date = new Date(date);
   // return Math.floor(_date.getTime() / 1000);
 
-  const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
-  const normalizedDate = format(parsedDate, 'yyyy-MM-dd');
-  const _date = new Date(normalizedDate);
-  return Math.floor(_date.getTime() / 1000);
+  try {
+    const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
+    const normalizedDate = format(parsedDate, 'yyyy-MM-dd');
+    const _date = new Date(normalizedDate);
+    return Math.floor(_date.getTime() / 1000);
+  } catch (error) {
+    return 0
+  }
 };
 
 export const capitalize = (str: string) => {
