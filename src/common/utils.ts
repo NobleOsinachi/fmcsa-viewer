@@ -28,6 +28,21 @@ export const snake_format = (str: string) => {
     .replace(/_+/g, '_');
 };
 
+const months: { [key: string]: number } = {
+  January: 1,
+  February: 2,
+  March: 3,
+  April: 4,
+  May: 5,
+  June: 6,
+  July: 7,
+  August: 8,
+  September: 9,
+  October: 10,
+  November: 11,
+  December: 12,
+};
+
 export const getBarChartData = (
   records: any[],
 ): { month: string; count: number }[] => {
@@ -43,10 +58,15 @@ export const getBarChartData = (
     }
   });
 
-  return Object.keys(monthMap).map(month => ({
-    month,
-    count: monthMap[month],
-  }));
+  const sortedMonths = Object.keys(monthMap)
+    .map(month => ({
+      month,
+      count: monthMap[month],
+      monthIndex: months[month],
+    }))
+    .sort((a, b) => a.monthIndex - b.monthIndex);
+
+  return sortedMonths;
 };
 
 export const isTableFiltered = (): boolean => {

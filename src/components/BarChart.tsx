@@ -24,7 +24,7 @@ const OutOfServiceBarChart = ({ records }: { records: Record[] }) => {
         data={barChartData}
         margin={{
           top: 20,
-          right: 30,
+          right: 20,
           left: 20,
           bottom: 5,
         }}

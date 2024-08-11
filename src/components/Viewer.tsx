@@ -64,7 +64,7 @@ const Viewer = () => {
   };
 
   useEffect(() => {
-    if (loading) return;
+    // if (loading) return;
 
     // Load initial state from searchParams
 
@@ -94,7 +94,7 @@ const Viewer = () => {
     }
 
     setInitialSortingState(initSortState);
-  }, [loading, searchParams]);
+  }, [searchParams]);
 
   useEffect(() => {
     const tableState = {
