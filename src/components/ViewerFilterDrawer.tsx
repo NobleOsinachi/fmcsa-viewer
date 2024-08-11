@@ -37,7 +37,7 @@ const ViewerFilterDrawer = ({
   handleCreatedDtChange,
   modifiedDt,
   handleModifiedDtChange,
-  resetTableState
+  resetTableState,
 }: TViewerFilterDrawer) => {
   return (
     <Drawer
@@ -65,9 +65,7 @@ const ViewerFilterDrawer = ({
               <em>None</em>
             </MenuItem>
             <MenuItem value="FREIGHT FORWARDER">FREIGHT FORWARDER</MenuItem>
-            <MenuItem value="CARRIER">
-              CARRIER
-            </MenuItem>
+            <MenuItem value="CARRIER">CARRIER</MenuItem>
             <MenuItem value="BROKER">BROKER</MenuItem>
             <MenuItem value="CARRIER/IEP">CARRIER/IEP</MenuItem>
             <MenuItem value="IEP">IEP</MenuItem>
@@ -116,7 +114,12 @@ const ViewerFilterDrawer = ({
           fullWidth
           margin="normal"
         />
-        <Button variant="outlined" color='secondary' sx={{ mt: 2 }} onClick={resetTableState}>
+        <Button
+          variant="outlined"
+          color="secondary"
+          sx={{ mt: 2 }}
+          onClick={resetTableState}
+        >
           Reset to Default
         </Button>
       </Box>

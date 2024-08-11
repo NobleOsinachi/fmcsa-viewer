@@ -59,42 +59,46 @@ const PivotViewer = ({ records }: { records: Record[] }) => {
   const updateTable = (s: PivotTableUIProps) => {
     setPivotState(s);
     const newSearchParams = new URLSearchParams(searchParams);
-    const snakeStrings = s.rows?.map((row) => snake_format(row))
-    
+    const snakeStrings = s.rows?.map(row => snake_format(row));
+
     newSearchParams.set('rows', JSON.stringify(snakeStrings));
     setSearchParams(newSearchParams);
   };
 
   useEffect(() => {
     const urlRows = searchParams.get('rows');
-    
+
     if (urlRows) {
       let rowsArray: any[] = [];
 
-        try {
-          rowsArray = JSON.parse(urlRows);
-        } catch (error) {
-          rowsArray = []
-          console.error("Failed to parse 'rows' from URL:", error);
-        }
+      try {
+        rowsArray = JSON.parse(urlRows);
+      } catch (error) {
+        rowsArray = [];
+        console.error("Failed to parse 'rows' from URL:", error);
+      }
 
-      const rowLabels = rowsArray.map((key) => {
+      const rowLabels = rowsArray
+        .map(key => {
+          if (key.includes('date') || key.includes('dt')) {
+            return capitalize(key);
+          }
 
-        if ((key.includes("date") || key.includes("dt"))) {
-          return capitalize(key)
-        }
+          if (!records.some((record: any) => record[key])) {
+            return null;
+          }
 
-        if (!records.some((record: any) => record[key])) {
-          return null;
-        }
-        
-        return columns.find(item => item.label === capitalize(key))?.label
-      }).filter((data) => data)
+          return columns.find(item => item.label === capitalize(key))?.label;
+        })
+        .filter(data => data);
 
-      setPivotState((prevState: any) => ({ ...prevState, rows: rowLabels || [] }));
+      setPivotState((prevState: any) => ({
+        ...prevState,
+        rows: rowLabels || [],
+      }));
     }
   }, []);
-  
+
   return (
     <Box m={5} ml={0} sx={{ overflowX: 'auto' }} py={5}>
       <PivotTableUI

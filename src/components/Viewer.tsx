@@ -341,7 +341,7 @@ const Viewer = () => {
     if (templates[templateName]) {
       const savedState = templates[templateName];
       // Get the origin (protocol + host)
-      const origin = window.location.origin; 
+      const origin = window.location.origin;
       const fullUrlWithoutParams = origin + savedState.path;
 
       navigator.clipboard.writeText(fullUrlWithoutParams);

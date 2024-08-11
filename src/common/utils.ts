@@ -83,7 +83,7 @@ export const isTableFiltered = (): boolean => {
   };
 
   const savedState = JSON.parse(localStorage.getItem('tableState') || '{}');
-  
+
   // Compare each part of the state to see if anything has been modified
   return (
     JSON.stringify(savedState.columnOrder || defaultState.columnOrder) !==
@@ -99,7 +99,6 @@ export const isTableFiltered = (): boolean => {
     savedState.page !== defaultState.page
   );
 };
-
 
 export const loadTableStateFromLocalStorage = () => {
   const state = localStorage.getItem('tableState');

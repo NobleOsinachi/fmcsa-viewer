@@ -15,7 +15,11 @@ const OutOfServiceBarChart = ({ records }: { records: Record[] }) => {
   const barChartData = getBarChartData(records);
 
   if (!records.length) {
-    return <p>No records of <b>out of service</b> companies!</p>;
+    return (
+      <p>
+        No records of <b>out of service</b> companies!
+      </p>
+    );
   }
 
   return (

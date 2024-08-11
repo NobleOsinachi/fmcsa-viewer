@@ -9,17 +9,17 @@ function App() {
     },
     palette: {
       primary: {
-        main: '#1C6DA6'
+        main: '#1C6DA6',
       },
       secondary: {
-        main: '#15396C'
-      }
-    }
+        main: '#15396C',
+      },
+    },
   });
 
   const router = createBrowserRouter([
     {
-      path: "/",
+      path: '/',
       element: <Viewer />,
     },
   ]);
